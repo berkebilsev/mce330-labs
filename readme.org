@@ -1,2 +1,14 @@
-#+TITLE:  MCE 330 Labs
+#+TITLE:  MCE 330 - Introduction to ROS
+
+
+- *Week 1:* [[file:week-1.org][ROS Basics]]
+- *Week 2:* Topics: publishers & subscribers
+- *Week 3*: Custom Messages
+- *Week 4:* Launch Files
+- *Week 5*: Services
+- *Week 6:* Actions
+- *Week 7:* Debugging, RosBag, etc.
+- *Week 8:* URDF Modeling
+- *Week 9:* Gazebo
+- ...
 
