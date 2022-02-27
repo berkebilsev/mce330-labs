@@ -1,0 +1,89 @@
+#+TITLE:  ROS Notes
+#+VERSION: ROS1 - noetic 
+
+
+* Installation
+#+BEGIN_SRC shell
+sudo apt-get update
+sudo apt-get install ros-noetic-joy
+sudo apt-get install ros-noetic-control-toolbox
+sudo apt-get install ros-noetic-robot-controllers
+sudo apt-get install ros-noetic-gazebo-ros
+sudo apt-get install ros-noetic-gazebo-plugins 
+sudo apt-get install ros-noetic-rgbd-launch
+
+
+cd
+cd sim_ws/src
+git clone https://bitbucket.org/theconstructcore/bb8.git
+cd ..
+catkin_make
+
+#+END_SRC
+
+* ROSCORE
+Roscore is the program that provides the pseudo-kernel layer that runs on the hardware connected over a network.
+Only one of the computers on the network runs the roscore.
+To specify which hardware it is, a simple MAC adress would suffice.
+However, since ROS uses a modified TCP/IP protocol, they stick with the IP numbers.
+When you are running ROS on your personal computer, ROS_MASTER_URI is generally the local-host.
+
+#+BEGIN_SRC shell
+export | grep ROS
+#+END_SRC
+
+You will see something like:
+
+#+BEGIN_SRC shell
+declare -x ROS_MASTER_URI="http://6_simulation:11311"
+#+END_SRC
+
+This is where the roscore is being executed.
+
+* Nodes
+An operating system provides a layer on which processes are handled.
+Similarly, roscore provides a layer on which "nodes" are handled.
+A node is basically a synonym for a process. (at least for ROS1)
+
+In ROS1, you can only create one node per process. So processes and nodes are practically equivalent.
+Using a round-about API, you can create something called a nodelet instead, but noone does that..
+
+In ROS2, (as fas as I know so far) nodes are actually compiled as shared libraries.
+Any number of nodes can then be linked to any process, even in the runtime.
+
+
+
+## Launch file
+Node tag specifies which process to start with this launch file.
+Each node is an executable (python script or a compiled executable) under a package.
+Hence, it can be located using the package + executable name.
+pkg: describes the package name. The devel/setup.bash of the workspace that hosts this package should be sourced beforehand.
+type: the name of the executable
+name: name of the ros node that will be launched by the process (the string you provided to ros.init_node("this string")
+output: the standard output of the process
+<node pkg="turtlebot_teleop" type="turtlebot_teleop_key.py" name="turtlebot_teleop_keyboard"  output="screen">
+
+
+
+# PACKAGES
+# Creating a package
+catkin_create_pkg <package_name> <package_dependecies>
+
+# you can list the packages using
+rospack list
+rospack list | grep mypackage
+
+# update the package list
+rospack profile   
+
+??????????
+Publications:
+ * /rosout [rosgraph_msgs/Log]
+
+Subscriptions:
+ * /clock [rosgraph_msgs/Clock]
+ 
+ ############################
+ parameter server
+ 
+ rosparam list
