@@ -93,7 +93,7 @@ code Makefile
 Copy the following into the file:
 #+BEGIN_SRC Make
 demo_with_make:
-	gcc main.c -o demo_with_make#+END_SRC
+	gcc main.c -o demo_with_make
 #+END_SRC
 
 Then, you can compile and run simply by doing:
