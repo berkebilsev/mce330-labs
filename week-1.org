@@ -43,7 +43,7 @@ declare -x ROS_MASTER_URI="http://localhost:11311"
 * Catkin
 Catkin is a build system that comes with ROS.
 To properly understand it, we will first start by compiling a simple C file.
-** *TASK 1 (30 points):* Building a C file.
+** *TASK 1 :* Building a C file.
 *** Simple Compilation (10 points)
 Let's write a simple C++ program.
 #+BEGIN_SRC shell
@@ -142,7 +142,7 @@ make # runs make using the Makefile
 
 *Call the instructor to your desk and show your screen to get your score.*
 
-** TASK 2 (10 points): Creating a catkin workspace
+** TASK 2 : Creating a catkin workspace
 The program we created in the previous task is just one process.
 In ROS, we work with many interacting processes, called "nodes".
 To do so, all these separate programs have to be built.
@@ -201,7 +201,7 @@ It includes all the settings that catkin uses to build all the stuff in our work
 *Call the instructor to your desk and show your screen to get your score.*
 
 * Packages
-** TASK 3 (10 points): Creating a package
+** TASK 3 : Creating a package
 Now, we can change our VSCode folder to the catkin_ws.
 - In the VSCode toolbar, press "File", then "Open Folder"
 - Navigate to catkin_ws and select it
@@ -209,7 +209,7 @@ Now, we can change our VSCode folder to the catkin_ws.
 Create a package as follows:
 #+BEGIN_SRC shell
 cd ~/catkin_ws/src
-catkin_create_package my_package rospy roscpp
+catkin_create_pkg my_package rospy roscpp
 #+END_SRC
 
 Here, my_package is the name of the package.
@@ -229,7 +229,7 @@ Just like how we put all packages under catkin_ws/src, we put all the source cod
 *Call the instructor to your desk and show your screen to get your score.*
 
 * Nodes
-** TASK 4 (30 points): Build an executable using catkin
+** TASK 4 (50 points): Build an executable using catkin
 #+BEGIN_SRC shell
 cd ~/catkin_ws/src/my_package/src
 touch  node1.cpp
@@ -278,7 +278,7 @@ Now, we can build our executable using the "catkin_make" command.
 
 #+BEGIN_SRC shell
 cd ~/catkin_ws
-catkin_build
+catkin_make
 #+END_SRC
 
 Ros puts the executable we built into a separate directory.
@@ -331,7 +331,7 @@ rosrun my_package node1
 
 You can stop the execution by pressing CTRL-C. 
 
-** TASK 5 (20 points): Write a node using Python
+** TASK 5 (50 points): Write a node using Python
 ROS API is also available for python.
 Using python, in many ways, is simpler than using C++.
 Let's create a node in Python.
