@@ -1,0 +1,402 @@
+#+TITLE:  MCE 330 - Week 1 - ROS Basics
+#+DESCRIPTION: This tutorial introduces the basics of ROS.
+#+VERSION: ROS-noetic 
+
+
+* ROS :: Robot Operating System
+ROS is best understood by understanding why it calls itself an "Operating System".
+One of the main functionalities of an operating system is to provide a foundation on which other processes can run and interact with each other.
+For example, the figure below shows 3 separate programs running simultaneously on the same operating system.
+
+[[./images/operating_system.PNG]]
+
+Similarly, we require many processes running simultaneously on a robot to ensure proper functioning.
+You might have a separate process for the trajectory planning, control, image processing, learning, etc.
+However, in robotics, these processes do not necessarily run on the same hardware.
+For example, the trajectory planner can run on some desktop computer, whereas the controller runs on the actual robot.
+So, we have many different platforms, generally connected over a network.
+
+[[./images/different_hardware.PNG]]
+
+In this image, different processes are shown as green balls.
+Without ROS, we would have to write our own network code to communicate between them.
+The first functionality of ROS is to provide a layer that does the network communication for us.
+So that, these processes can seamlessly communicate over a modified TCP/IP protocol, without us manually writing network code.
+To do so, it uses the following:
+
+- *roscore:* is just a program that runs on one of the devices. It manages and encapsulates all the network stuff we don't want to look at. Doing so, it provides a layer that stretches out on many different platforms on the same network. The platform on which roscore is run is called the "master".
+
+- *nodes:* are processes that uses a specific API to communicate with the roscore, and with each other.
+
+[[./images/roscore_and_nodes.PNG]]
+
+The adress of the master in the network can be checked as follows:
+#+BEGIN_SRC shell
+export | grep ROS
+#+END_SRC
+
+You will see something like.
+#+BEGIN_SRC shell
+declare -x ROS_MASTER_URI="http://localhost:11311"
+#+END_SRC
+
+* Catkin
+Catkin is a build system that comes with ROS.
+To properly understand it, we will first start by compiling a simple C file.
+** *TASK 1 :* Building a C file.
+*** Simple Compilation (10 points)
+Let's write a simple C++ program.
+#+BEGIN_SRC shell
+cd
+mkdir demo # It is fine it the folder already exists.
+cd demo
+touch main.c
+code main.c
+#+END_SRC
+
+Copy paste the following code. Edit the place where it says "<insert your name and student number here>".
+#+BEGIN_SRC C
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+    printf("<insert your name and student number here> \n");
+
+    return 0;
+}
+#+END_SRC
+
+
+This file can be compiled and run simply by doing:
+#+BEGIN_SRC shell
+gcc main.c -o demo
+./demo
+#+END_SRC
+
+In the shell, you will see your name and student number printed.
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+*** Make File (10 points)
+Here, "GCC" stands for "GNU Compiler Collection". It is the actual program that compiles your file.
+It can take many arguments. In our case we provided "-o demo", meaning that we want the output name to be "demo".
+In an actual project, you will have many more arguments, specifying all kinds of stuff.
+Not only that, there might be several files that has to be built and then linked together, etc.
+
+Historically, people came up with a program called *make* which runs the appropriate commands according to the specifications provided in a *Makefile*.
+Here is how to create a very simple make file. 
+#+BEGIN_SRC shell
+touch Makefile
+code Makefile
+#+END_SRC
+
+Copy the following into the file:
+#+BEGIN_SRC Make
+demo_with_make:
+	gcc main.c -o demo_with_make
+#+END_SRC
+
+Then, you can compile and run simply by doing:
+#+BEGIN_SRC shell
+make
+./demo_with_make
+#+END_SRC
+
+Remark: Now, you didn't have to call gcc yourself. You have specified the command to be executed in the Makefile, and the program "make" called the gcc on your behalf.
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+*** CMake (10 points)
+Make is nice, but it is also very ugly. Long Makefiles are hard to understand and work with.
+To make things easier for themselves, people wrote yet another program called "CMake" that generates the Makefile for them.
+CMake also uses a configuration file called "CMakeLists.txt".
+A corresponding Makefile can be generated using this file.
+
+Let's first start by removing our previous Makefile and creating a CMakeLists.txt instead.
+#+BEGIN_SRC shell
+rm Makefile
+touch CMakeLists.txt
+code CMakeLists.txt
+#+END_SRC
+
+Copy the following into the file and save it.
+#+BEGIN_SRC CMake
+cmake_minimum_required(VERSION 3.10)
+project(demo)
+
+add_executable(demo_with_cmake main.c)
+#+END_SRC
+Here, the first argument of the add_executable() macro is the name of the executable to be generated.
+And the second argument is the name of the source file.
+In effect, add_executable(demo_with_cmake main.c)  makes the same thing as "gcc main.c -o demo_with_cmake"
+
+Now, we can first generate an appropriate Makefile for our project, then compile and run it.
+#+BEGIN_SRC shell
+ls # first check the files in your current directory, notice that you do not have a Makefile yet
+cmake . # generates a Makefile according to the CMakeLists.txt found in the current directory
+ls # Now you should have an automatically generated Makefile and other stuff ! 
+
+make # runs make using the Makefile
+./demo_with_cmake
+#+END_SRC
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+** TASK 2 : Creating a catkin workspace
+The program we created in the previous task is just one process.
+In ROS, we work with many interacting processes, called "nodes".
+To do so, all these separate programs have to be built.
+Doing it manually would require us to go to each project, manually compile it, etc.
+Not only that, there might be definitions that are shared across these projects that we have to manualy update.
+Any many other similar problems. All this process would be really cumbersome.
+
+Instead, ROS comes with an alternate build system, called *catkin*.
+Catkin is a build tool that builds not a single executable, but all the executables organized in a workspace.
+To do so, it heavily uses CMake under the hood.
+Catkin is used with the following file structure convention:
+
+- catkin_ws: the top-level directory for the catkin, all "packages" under this directory are built by catkin
+  - devel: bunch of scripts, autogenerated by catkin
+  - build: where the executables and other build artifacts go automatically
+  - src: this is where we keep our source code. this folder belongs to us, the user.
+    - *CMakeLists.txt*: CMake settings for the whole src directory, this how catkin understands this is a workspace
+    - package1:
+      - src
+        - node1.cpp
+        - node2.cpp
+      - scripts
+        - node3.py
+        - node4.py
+      - *CMakeLists.txt*: CMake settings for this particular package. catkin understands which files to build using this file
+    - package2: ...
+    - package3: ...
+
+Here is an overview:
+- user writes programs, either in Python or Cpp. Each separate program is associated with a "node" in ROS.
+- the code for nodes that are about one singular thing are organized into a "package".
+- the top-level directory under which packages reside is called the "workspace"
+
+Let's create a catkin workspace !
+#+BEGIN_SRC shell
+cd
+mkdir catkin_ws
+cd catkin_ws
+mkdir src
+catkin_make
+#+END_SRC
+
+"catkin_make" command is used as a utiltiy tool to initialize a catkin workspace.
+Let's see our source files.
+
+#+BEGIN_SRC  shell
+cd src
+ls
+#+END_SRC
+
+You will see a "CMakeLists.txt" file here.
+This file is just like the CMakeLists.txt we previously created, but it is longer and more complicated.
+It includes all the settings that catkin uses to build all the stuff in our workspace.
+
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+* Packages
+** TASK 3 : Creating a package
+Now, we can change our VSCode folder to the catkin_ws.
+- In the VSCode toolbar, press "File", then "Open Folder"
+- Navigate to catkin_ws and select it
+
+Create a package as follows:
+#+BEGIN_SRC shell
+cd ~/catkin_ws/src
+catkin_create_pkg my_package rospy roscpp
+#+END_SRC
+
+Here, my_package is the name of the package.
+"rospy" and "roscpp" are the dependencies.
+These provide the necessary header files and modules to be able to use the ROS API in C++ and Python.
+
+Now, you should have a package. Each package has its own CMakeLists.txt that specifies how it is built.
+Also, there is a package.xml file that holds bunch of other information. 
+
+#+BEGIN_SRC shell
+cd my_package
+ls
+#+END_SRC
+
+Just like how we put all packages under catkin_ws/src, we put all the source code we write under package_name/src.
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+* Nodes
+** TASK 4 (50 points): Build an executable using catkin
+#+BEGIN_SRC shell
+cd ~/catkin_ws/src/my_package/src
+touch  node1.cpp
+code node1.cpp
+#+END_SRC
+
+Put the following into the file
+#+BEGIN_SRC C
+#include "ros/ros.h"
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "node1");
+  ros::NodeHandle n;
+  ros::Rate rate(1);
+
+  while (ros::ok())
+  {
+      printf("Node-1 is running. \n");
+      rate.sleep();
+  }
+  return 0;
+}
+#+END_SRC
+
+To tell the catkin to build this file, we should edit the CMakeLists.txt of the package.
+#+BEGIN_SRC shell
+code ~/catkin_ws/src/my_package/CMakeLists.txt
+#+END_SRC
+
+The file looks long, but it is actually not.
+Most of this file is commented out. These comments are just there to remind you how to do some specific things.
+Add the following lines to the end of the file
+
+#+BEGIN_SRC CMake
+add_executable(node1 src/node1.cpp)
+target_link_libraries(node1 ${catkin_LIBRARIES})
+#+END_SRC
+
+Here, node1 is the name of the executable. add_executable() macro adds the node1.cpp as a build target, just like how we did previously.
+target_link_libraries links the ROS libraries so that the node can actually find the symbols referenced by the ROS API.
+
+Now, we can build our executable using the "catkin_make" command.
+*catkin_make should always be run at the workspace folder."
+
+#+BEGIN_SRC shell
+cd ~/catkin_ws
+catkin_make
+#+END_SRC
+
+Ros puts the executable we built into a separate directory.
+We do not have to manually locate the executable.
+Try running.
+#+BEGIN_SRC shell
+rosrun my_package node1
+#+END_SRC
+
+It should give you the error "[rospack] Error: package "my_package" not found".
+This is because even though we did some stuff, our current bash environment is not aware of it yet.
+To make the ROS aware of all the things we did, we source the following file.
+
+#+BEGIN_SRC shell
+source devel/setup.bash
+#+END_SRC
+
+Try running the previous command again.
+You can now also use auto-completion
+
+rosrun my_ <TAB> <TAB> : completes to my_package
+rosrun my_package n <TAB> <TAB>: completes to node1
+
+Now, you should get the following error:
+
+[registerPublisher] Failed to contact master at [localhost:11311]
+
+This is normal.
+Recall, we have said that the nodes run on the layer provided by the "roscore"
+We have also said that the roscore is referred as the "master".
+The error indicates that we are trying to run a node, without starting roscore first.
+
+Start the roscore first by executing:
+#+BEGIN_SRC shell
+roscore
+#+END_SRC
+
+This will start the roscore.
+Keep the roscore running on this terminal window.
+You can change the terminal name to "roscore" in VSCode.
+
+Open up a new terminal using the toolbar "Terminal->New Terminal".
+Now, source the setup.bash again and try executing
+#+BEGIN_SRC shell
+source ~/catkin_ws/devel/setup.bash
+rosrun my_package node1
+#+END_SRC
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+You can stop the execution by pressing CTRL-C. 
+
+** TASK 5 (50 points): Write a node using Python
+ROS API is also available for python.
+Using python, in many ways, is simpler than using C++.
+Let's create a node in Python.
+
+#+BEGIN_SRC shell
+roscd my_package
+#+END_SRC
+
+Remark: see what we just did there ?
+roscd is a command that lets you to jump to the package folder instead of finding it yourself. It stands for ros + cd (change directory).
+
+#+BEGIN_SRC shell
+mkdir scripts
+cd scripts
+touch node2.py
+#+END_SRC
+
+Python files are note compiled.
+Instead, they are directly executed.
+To do so, they should be given the execution permission.
+The command that changes the permission mod of a file is "chmod" (chmod).
+To make something executable, we provide the argument "+x".
+
+#+BEGIN_SRC shell
+chmod +x node2.py
+#+END_SRC
+
+Now, we can edit the file.
+#+BEGIN_SRC shell
+code node2.py
+#+END_SRC
+
+Copy paste the following code into the file.
+#+BEGIN_SRC python
+#!/usr/bin/env python3
+import rospy
+
+def node2():
+    rospy.init_node('node2', anonymous=True)
+    rate = rospy.Rate(1)
+
+    while not rospy.is_shutdown():
+        print("Node 2 is running.")
+        rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        node2()
+    except rospy.ROSInterruptException:
+        pass
+#+END_SRC
+
+Save the file. Make sure the roscore is still up and running.
+Then, execute your script by running:
+
+#+BEGIN_SRC shell
+rosrun my_package node2.py
+#+END_SRC
+
+*Remark:* We didn't have to run catkin_make this time. This is because we have simply added a python script, which doesn't require compilation.
+Nevertheless, when working on large projects where python scripts and many C++ files depent on each other, it is generally becomes necessary to run catkin_make after each change.
+
+*Call the instructor to your desk and show your screen to get your score.*
+
+
+
+
+
