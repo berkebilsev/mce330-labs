@@ -14,7 +14,7 @@ A nice way to conceptualize topics is to think them as stacks of messages.
   - A node that sends a new message to the topic is called a *publisher*.
   - A node that reads a message from the topic is called a *subscriber*.
 
-[[./images/topics.png]]
+[[./images/topics.PNG]]
 
 *REMARK:* This is only a way to conceptualize the topics, but not the actual way in which they are implemented.
 This description sounds as if the topics are out there at some central location and the nodes are reading / writing to them.
