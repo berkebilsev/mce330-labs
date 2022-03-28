@@ -1,4 +1,4 @@
-#+TITLE:  ROS Topics, Publishers & Subscribers
+#+TITLE:  MCE 330 Lab 2 - ROS Topics, Publishers & Subscribers
 #+DESCRIPTION: This tutorial introduces the basics of ROS topics
 #+VERSION: ROS-noetic 
 
