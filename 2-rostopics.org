@@ -3,23 +3,25 @@
 #+VERSION: ROS-noetic 
 
 * Communication Between ROS Nodes
-In the previous tutorial, we have already created 2 different nodes. However, they are quite useless as they are at the moment. We want them to be able to communicate with each other so that we  can create complex systems. In ROS, this communication is done through 3 different means: topics, services and actions.
+In the previous tutorial, we have already created 2 different nodes. However, they are quite useless as they are at the moment.
+We want them to be able to communicate with each other so that we  can create complex systems.
+In ROS, this communication is done through 3 different means: topics, services and actions.
 
 * Topics
-A nice way to conceptualize topics is to think them as stacks of messages.
-- Each topic has a name, i.e. "/cmd_vel". You can imagine this name as an empty box
+A nice way to conceptualize topics is to think them as stacks of messages between nodes.
+- Each topic has a name, i.e. "/cmd_vel". You can imagine this name as an empty box located between two nodes.
 - This box can be filled with "messages". A topic accepts messages of a specific type i.e. Int32, String, etc.
 - Messages are stacked in the topic. That is, the latest one is at the top.
 - Nodes can send more messages to the box, or take them away to read them.
   - A node that sends a new message to the topic is called a *publisher*.
   - A node that reads a message from the topic is called a *subscriber*.
 
-[[./images/topics.PNG]]
-
 *REMARK:* This is only a way to conceptualize the topics, but not the actual way in which they are implemented.
 This description sounds as if the topics are out there at some central location and the nodes are reading / writing to them.
 In the actual implementation, ROS handles this communication peer-to-peer only between the publishers & subscribers of a topic.
-Otherwise, it would be quite inefficent. 
+Otherwise, it would be quite inefficent.
+Also, the messages are broadcasted by publishers to all subscribers.
+That is, reading the message by one subscriber does not remove it from the que of the others.
 
 * TASK 1: Create a publisher
 This week, we will only work using Python for simplicity sake. Let's have a Python script that publishes to a topic called "/command".

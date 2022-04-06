@@ -1,0 +1,129 @@
+#+TITLE: Services, Actions and Messages
+
+
+We will start with a brief discussion on actions, services and custom message types, then move on to the exercise.
+Exercise will still be about the topics, because it might take a while to implement a service server & client during the lab.
+
+* Services & Actions
+Topics are great and are widely used, but they have some shortcomings.
+There are also services and actions. We use them instead of topics when needed.
+Here is a good comparison, taken from [[https://docs.ros.org/en/foxy/How-To-Guides/Topics-Services-Actions.html][ROS Wiki]].
+
+*Topics:*
+- Should be used for continuous data streams (sensor data, robot state, …).
+- Are for continuous data flow. Data might be published and subscribed at any time independent of any senders/receivers. Many to many connection. Callbacks receive data once it is available. The publisher decides when data is sent.
+
+*Services:*
+- Should be used for remote procedure calls that terminate quickly, e.g. for querying the state of a node or doing a quick calculation such as IK. They should never be used for longer running processes, in particular processes that might be required to preempt if exceptional situations occur and they should never change or depend on state to avoid unwanted side effects for other nodes.
+- Simple blocking call. Mostly used for comparably fast tasks as requesting specific data. Semantically for processing requests.
+
+*Actions:*
+- Should be used for any discrete behavior that moves a robot or that runs for a longer time but provides feedback during execution.
+- The most important property of actions is that they can be preempted and preemption should always be implemented cleanly by action servers.
+- Actions can keep state for the lifetime of a goal, i.e. if executing two action goals in parallel on the same server, for each client a separate state instance can be kept since the goal is uniquely identified by its id.
+- Slow perception routines which take several seconds to terminate or initiating a lower-level control mode are good use cases for actions.
+- More complex non-blocking background processing. Used for longer tasks like execution of robot actions. Semantically for real-world actions.
+
+For more resources, refer to:
+- services: http://wiki.ros.org/ROS/Tutorials/WritingServiceClient%28python%29
+- actions: http://wiki.ros.org/actionlib
+
+*Remark:*  We will not actually implement a service / action during the lab, but the code for them is quite straight forward.
+
+*Remark2:* When we are working with real robots, action servers are generally provided by their ROS drivers. We can simply call the action server. 
+
+For example, I personally use [[https://github.com/UniversalRobots/Universal_Robots_ROS_Driver][UR ROS Driver]] to connect with a UR5 robot.
+Sending trajectory commands via the actionlib interface is as straight forward as:
+#+BEGIN_SRC c
+// ... somewhere in main
+ros::init(argc, argv, "ur5_trajectory_controller");
+trajectory_client* client = new trajectory_client("/scaled_pos_joint_traj_controller/follow_joint_trajectory");
+
+control_msgs::FollowJointTrajectoryGoal goal;
+// ... set the desired values for the goal, then send it
+
+client->sendGoal(goal);
+#+END_SRC
+
+*Messages:*
+Nodes communicate with each other using messages of some specific type.
+Notice, these nodes can be written in different languages, such as C++ and Python.
+However, the data types and class definitions in these languages are not the same.
+How is it that they can communicate smoothly ?
+This is where some of the ROS magic happens.
+
+ROS uses its own data types and generates the appropriate code for both C++ and Python.
+For example, if you want to use a message that has 2 fields, "X" and "Y", you do _NOT_ do the following
+#+BEGIN_SRC C
+struct msgtype
+{
+   float x;
+   float y
+};
+#+END_SRC
+
+This data typed defined in some C++ file is not be availabe / usable in some other node, let's say written in Python. Instead, we create a ".msg" file, and put the following in it.
+
+#+BEGIN_SRC text
+Float32 x
+Float32 y
+#+END_SRC
+
+*Remark:* Remember how we talked about "catkin" in the first weeks ? We said that it calls cmake and make at the end, but it also does bunch of stuff. One of the things it does is generating code for the message types.
+To actually do so, there are a bunch of places in your build files change. Full documentation can be found in the [[http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv][ROS Documentation for message types.]]
+
+* (100 pts) Control the turtlesim
+In real projects, we connect to real robots or their simulations via ROS and we send various commands to them.
+The turtlesim package is a tutorial package that allows you to connect to a turtlebot in a virtual environment.
+It does not provide an action interface, but subscribes to a velocity command topic, using which velocities can be provided.
+
+In this example, you will use the turtlesim package. The task is to control it to draw circles.
+First, make sure you have the turtlesim installed by running:
+#+BEGIN_SRC bash
+sudo apt-get install ros-$(rosversion -d)-turtlesim
+#+END_SRC
+
+Now, let's run the turtlesim node. In a terminal tab, run:
+#+BEGIN_SRC bash
+roscore
+#+END_SRC
+
+In another terminal tab, run:
+#+BEGIN_SRC bash
+rosrun turtlesim turtlesim_node
+#+END_SRC
+
+
+This should start a graphical window in which there is a turtle. Here are your tasks:
+- Find the velocity command topic using "rostopic list"
+- Find the message type of that topic using "rostopic echo ....." 
+- See the documentation for that topic online and the fields in it
+
+- Create a package "turtlebot_controller", *Hint:* it should depend on rospy
+- Create a script called "vel_controller.py", *Hint:* make sure the script is executable, use chmod +x
+- Write the code for a publisher to this topic, *Hint:* you can copy paste the code from the previous week. remember where yo specify the message type and topic name ?
+- Make sure that the publisher uses the correct *message type* (you read that using rostopic info) and the correct topic name (you read that using rostopic list)
+- Set a value for your velocity message, it will have a linear and translational part. This kind of thing let's you run in circles:
+#+BEGIN_SRC python
+command.linear.x = 0.5
+command.linear.y = 0
+command.linear.z = 0
+
+command.angular.x = 0
+command.angular.y = 0
+command.angular.z = 1
+#+END_SRC
+
+*Remark:* You should have previously seen the fields of this message types in its online documentation. This is how you access these fields !
+
+- Publish your command at a rate of 100 Hz.
+
+
+
+
+
+
+
+
+
+

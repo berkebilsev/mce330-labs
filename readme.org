@@ -2,9 +2,7 @@
 
 - [[file:1-rosbasics.org][ROS Basics]]
 - [[file:2-rostopics.org][ROS Topics, Publishers & Subscribers]]
-- Message Types & Launch Files
-- Services
-- Actions
+- [[file:3-rosactions.org][Services, Actions and Custom Messages]]
 - Debugging, RosBag, etc.
 - URDF Modeling
 - Gazebo
