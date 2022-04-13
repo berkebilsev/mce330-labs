@@ -3,7 +3,8 @@
 - [[file:1-rosbasics.org][ROS Basics]]
 - [[file:2-rostopics.org][ROS Topics, Publishers & Subscribers]]
 - [[file:3-rosactions.org][Services, Actions and Custom Messages]]
-- Debugging, RosBag, etc.
+- [[file:4-launchfiles.org][Launch Files and Rosqt Tools]]
+- Rosbag, Debugging, etc.
 - URDF Modeling
 - Gazebo
 
