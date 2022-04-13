@@ -1,0 +1,154 @@
+#+TITLE:  Launch Files and More
+
+* Launch Files
+As we have seen so far, each package might have many nodes in it.
+Also, we might be working on many different packages, which increases the number of nodes even more.
+Often times, we require situations in which several of these nodes have to be started simultaneously.
+For example, in the previous weeks, we first started the roscore, then node1, then node2, etc.
+What happens if we work on a large system and have 50 nodes to start ?
+Are we going to restart all of them every time we change something ?
+
+Let's say we are working on the turtlebot again, let's create a package for our controller.
+*Skip this step if you already have a package like this.*
+
+#+begin_src  bash
+cd ~/catkin_ws/src
+catkin_create_pkg turtlebot_controller rospy
+#+end_src
+
+
+** Creating and calling a launch file
+We create special files called launch files to tell ROS which nodes (and how) we would like to start.
+These launch files are generally placed under a launch folder in a package. Let's create one.
+
+#+begin_src  bash
+cd ~/catkin_ws/src/turtlebot_controller
+mkdir launch
+cd launch
+touch turtlestart.launch
+code turtlestart.launch
+#+end_src
+
+
+Paste the following:
+#+BEGIN_SRC xml
+<launch>
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+</launch>
+#+END_SRC
+This is the simplest launch file you can have.
+
+*Now, please listen to your instructor as he explains this launch file.*
+
+- pkg: name of the package that includes the file you would like to run
+- type: name of the file you would like to execute
+- name: name of the node ROS that will launch
+
+At this point, this launch file is equivalent to calling rosrun.
+#+BEGIN_SRC bash
+rosrun turtlesim turtlesim_node
+#+END_SRC
+
+Here is how we can run this launch file. *Hint:* Remember to source your workspace, or even build it if necessary using catkin_make.
+#+BEGIN_SRC bash
+roslaunch turtlebot_controller turtlestart.launch
+#+END_SRC 
+
+Now, you know yet another ROS command: roslaunch.
+
+It is used to call launch files. Like all the other similar ROS commands, it has 2 arguments: package that includes the launch file and the desired launch file.
+
+
+** Task 1 (50 pts)
+Let's use the launch files to do some interesting stuff. In this task, we will create a launch file that starts 2 turtlesim simulations, and makes them mimic each other !
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/turtlebot_controller/launch
+touch turtlemimic.launch
+code turtlemimic.launch
+#+END_SRC
+
+Paste the following:
+
+#+BEGIN_SRC xml
+<launch>
+
+  <group ns="turtlesim1">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <group ns="turtlesim2">
+    <node pkg="turtlesim" name="sim" type="turtlesim_node"/>
+  </group>
+
+  <node pkg="turtlesim" name="mimic" type="mimic">
+    <remap from="input" to="turtlesim1/turtle1"/>
+    <remap from="output" to="turtlesim2/turtle1"/>
+  </node>
+
+</launch>
+#+END_SRC
+
+*Now, please listen to your instructor as he explains this launch file.*
+This same launch file is also explained in the ROS wiki page on launch files:  [[http://wiki.ros.org/ROS/Tutorials/UsingRqtconsoleRoslaunch][ROS Wiki.]]
+
+Now, in some terminal, run the following:
+
+#+BEGIN_SRC bash
+roslaunch turtlebot_controller turtlemimic.launch
+#+END_SRC
+
+*Hint:* remember to source your workspace
+
+You will see two turtlebot simulations !
+*Let the previous terminal running, open up a new tab, and publish a message manually like this:*
+#+BEGIN_SRC bash
+rostopic pub /turtlesim1/turtle1/cmd_vel geometry_msgs/Twist -r 1 -- '[2.0, 0.0, 0.0]' '[0.0, 0.0, -1.8]'
+#+END_SRC
+
+This will publish a velocity message to the first turtlesim. It will cause it to draw a circle, just like how we did in the previous week.
+The second one will mimic it automatically !
+
+*Show your screen to the instructor to get your score from this task.*
+
+Let the processes running and move on to the next task.
+
+
+* ROS QT
+*Now, please listen to your instructor for a couple of minutes as he explains the various visualization tools in the ROS environment.*
+
+ROS ecosystem allows us to work with multiple processes that interact in the runtime.
+Since these processes use standardized data types (most of the time), we can combine packages/nodes written by other people with the ones we wrote.
+In fact, the ROS ecosystem has many such packages built for specific purposes such as controllers, trajectory planners, visualizers, etc.
+These things are normal rospackages that we can install and run alongside our own packages and they provide the functionalities implied by their names.
+ROS-Qt is one of such packages in the ROS ecosystem.
+
+Qt is a framework that allows one to built graphical user interfaces. ROS Qt, then, is a package that has bunch of graphical programs that allows us to display data from other ROS nodes.
+Your computer should already have this package installed, so you can just run it as you are running any other package.
+
+** Task 2 (50 pts) Visualize/Plot the position of the turtle
+Make sure the turtlesim is still running. Open up a new terminal and paste:
+#+BEGIN_SRC bash
+rosrun rqt_plot rqt_plot
+#+END_SRC
+
+This will open up a new window. Here, you can specify a topic name, and it will show a plot of each field of the messages published under that topic.
+
+*Your task is to plot the X coordinate of the turtlesim1.*
+To Do so:
+- Find the full topic name for the pose of the first turtle, using "rostopic list"
+- Enter that full topic name into the rqt_plot
+- Remove the unneccessary data (X, theta, etc.) by pressing the minus icon beside the topic name.
+
+You will see a sinusodial graph. *Show your screen to the instructor once you have the graph.*
+
+
+Once you are done, you can close the rqt_plot.
+There are many visualization tools like this. To get a general window from which you can start any one of them, try out simply running
+
+#+BEGIN_SRC bash
+rqt
+#+END_SRC
+
+This will open a blank window. From the menu, select /Plugins->Visualization->Plot, to get the previous tool.
+There are many other useful things. Try them out in your spare time.
