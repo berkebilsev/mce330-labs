@@ -1,0 +1,161 @@
+#+TITLE:  Transforms (TF)
+
+
+* Introduction
+At this point in the course, we know quite a bit about the Robot Operating System, but not so much about robots themselves.
+As far as the features of ROS we have covered goes, it can as well be used as a distributed comptuation system.
+The robotics specific stuff starts with a myriad of packages that comes with the ROS environment.
+Examples include, the famous navigation stack, ros control, transforms, urdfs, etc.
+To understand the rest of the things we will do, we should learn more about robotics first before we continue doing programming.
+
+
+
+Robotics, broadly speaking, can be separated into two main areas: mobile robotics and industrial robotics.
+In both of these fields, we make use of a similar type of mathematics.
+Please listen to your instructor as he explains the following concepts.
+
+- Rigid Body
+- Kinematic Element
+- Joints
+- Kinematic Chains
+- Frames
+- Rotation Between Frames
+- Translation & Homogeneous Transformations
+
+
+* Pre-Requisites for the Task
+This week, we will start working with transforms. Before we do so, we have to install a bunch of new packages.
+
+*Disable Automatic Update:* some of the virtual machines have automatic update on, which prevents you from installing packages as it install updates as soon as turn on the machine
+
+Open up your virtual machines, search for the app "Software Center".
+Find the setting that allows you to disable automatic updates.
+
+Please disable automatic updates before continuing, otherwise you won't be able to install the following things.
+Restart your virtual machine.
+
+
+*Open up some space:* some of the lab computers do not have any storage space left. Please delete all the unnecessary files, clean the recycle bin, the downloads folder, etc.
+
+* Introduction to Transforms
+
+Install the tutorial packages:
+
+#+BEGIN_SRC bash
+sudo apt-get install ros-noetic-ros-tutorials ros-noetic-geometry-tutorials ros-noetic-rviz ros-noetic-rosbash ros-noetic-rqt-tf-tree
+#+END_SRC
+
+Now, we can run a turtlesim tutorial.
+
+#+BEGIN_SRC bash
+roslaunch turtle_tf turtle_tf_demo.launch
+#+END_SRC
+
+
+Once the turtlesim is started you can drive the center turtle around in the turtlesim using the keyboard arrow keys, *select the roslaunch terminal window* so that your keystrokes will be captured to drive the turtle.
+
+Let's see the frames:
+#+BEGIN_SRC bash
+rosrun tf view_frames
+#+END_SRC
+
+You will see:
+#+BEGIN_SRC sh
+Transform Listener initing
+Listening to /tf for 5.000000 seconds
+Done Listening
+dot - Graphviz version 2.16 (Fri Feb  8 12:52:03 UTC 2008)
+
+Detected dot version 2.16
+frames.pdf generated
+#+END_SRC
+
+Here a tf listener is listening to the frames that are being broadcast over ROS and drawing a tree of how the frames are connected. To view the tree:
+
+#+BEGIN_SRC bash
+evince frames.pdf
+#+END_SRC
+
+
+Remember rqt packages ? There is also an rqt tool to visualize frames.
+#+BEGIN_SRC bash
+rosrun rqt_tf_tree rqt_tf_tree
+#+END_SRC
+
+We can see the actual data of the transformations using the tf package with the tf_echo command. In general:
+#+BEGIN_SRC bash
+rosrun tf tf_echo [reference_frame] [target_frame]
+#+END_SRC
+
+So, in our case:
+#+BEGIN_SRC bash
+rosrun tf tf_echo turtle1 turtle2
+#+END_SRC
+
+
+As you drive your turtle around you will see the transform change as the two turtles move relative to each other.
+
+We have not covered it yet, but there is also a visualization tool called "rviz", you can use it to show frames as follows:
+#+BEGIN_SRC bash
+rosrun rviz rviz -d `rospack find turtle_tf`/rviz/turtle_rviz.rviz
+#+END_SRC
+
+* TASK: Creating a transform broadcaster
+Now, we will create a new package that will broadcast the tf.
+After this point, *not all the code necessary to execute the task will be provided.* So that you can start practicing what you have been learning.
+Tasks for which you have to do bunch of stuff yourself will be provided starting with the TODO keyword.
+
+- TODO: create a package called "lab_tf" that depends on the packages: roscpp rospy turtlesim
+- TODO: create a "turtle_tf_broadcaster.py" file in a scripts folder under the package, do not forget to make it executable
+- TODO: Paste the following code to the file
+#+BEGIN_SRC python
+#!/usr/bin/env python  
+import roslib
+roslib.load_manifest('learning_tf')
+import rospy
+
+import tf
+import turtlesim.msg
+
+def handle_turtle_pose(msg, turtlename):
+    br = tf.TransformBroadcaster()
+    br.sendTransform((msg.x, msg.y, 0),
+                     tf.transformations.quaternion_from_euler(0, 0, msg.theta),
+                     rospy.Time.now(),
+                     turtlename,
+                     "world")
+
+rospy.init_node('turtle_tf_broadcaster')
+turtlename = rospy.get_param('~turtle')
+rospy.Subscriber('/%s/pose' % turtlename, turtlesim.msg.Pose, handle_turtle_pose, turtlename)
+rospy.spin()
+#+END_SRC
+
+*Now, please listen to your instructor as he explains the code.*
+
+- TODO: Create a launch file called "start_demo.launch" in a launch directory under the package, paste the following code
+ 
+#+BEGIN_SRC xml
+ <launch>
+    <!-- Turtlesim Node-->
+    <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
+    <node pkg="turtlesim" type="turtle_teleop_key" name="teleop" output="screen"/>
+
+    <node name="turtle1_tf_broadcaster" pkg="learning_tf" type="turtle_tf_broadcaster.py" respawn="false" output="screen" >
+      <param name="turtle" type="string" value="turtle1" />
+    </node>
+    <node name="turtle2_tf_broadcaster" pkg="learning_tf" type="turtle_tf_broadcaster.py" respawn="false" output="screen" >
+      <param name="turtle" type="string" value="turtle2" /> 
+    </node>
+
+  </launch>
+#+END_SRC
+
+
+Now, we can echo the transforms again and see the results.
+#+BEGIN_SRC bash
+rosrun tf tf_echo /world /turtle1
+#+END_SRC
+
+
+

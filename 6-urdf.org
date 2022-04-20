@@ -1,0 +1,29 @@
+#+TITLE:   URDF - Unified Robotics Description Format
+
+
+* Robot Simulation
+It is often the case that we test out our algorithms / tasks on a simulation before we run them on an actual robot.
+Doing so is not beneficial, but also necessary for safety purposes.
+There are many platforms on which robots can be simulated. All these platforms serve different purposes.
+Here is how I would group them:
+
+*Research:* This group of sofware is most commonly used by robotics researchers
+ - Gazebo: the most commonly used simulation environment, especially for mobile robots
+ - Simscape Multibody: extremely useful for designing a robot, creating controllers, working with the dynamics of a robot, etc.
+ - Misc: there are many other virtual environments and physics engines that are used for robots, such as Webots, OpenRave, etc.
+   
+*Industrial Programming / Simulation:* This is group of software is most commonly used by people that program robots in the industry
+- PolyScope: the simulation / programming environment for Universal Robots manipulators
+- ABB RoboStudio: a simulation and programming environment for ABB robots
+- RoboDK: Free version is useful to check the kinematics of many robots, premium version can be used for simulation
+
+To use such software, we first have to import our robot into them.
+To do so, the community has settled down on a way to describe robot in plain text files, using XML.
+The particular file format is called "Unified Robotics Description Format" (URDF).
+It is primarly used in conjuction with ROS & Gazebo, but many other platforms listed above also supports it.
+
+
+* Pre-Requisites
+  
+  
+
